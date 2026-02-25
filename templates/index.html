@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HENRY-X Token Extractor Panel</title>
+    <meta name="viewport" content="width=device-width">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Segoe UI', sans-serif;
+        }
+        body { 
+            min-height: 100vh; 
+            padding: 20px; 
+            color: white;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: rgba(0,0,0,0.3); 
+            padding: 30px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(10px);
+        }
+        input { 
+            width: 100%; 
+            padding: 20px; 
+            font-size: 18px; 
+            border: 2px solid #4267B2; 
+            border-radius: 15px; 
+            background: rgba(255,255,255,0.1);
+            color: white;
+            margin-bottom: 20px;
+        }
+        input::placeholder { color: #aaa; }
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            font-size: 20px; 
+            background: linear-gradient(45deg, #00d4aa, #00a085); 
+            border: none; 
+            border-radius: 15px; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover { transform: scale(1.02); }
+        .tokens { 
+            margin-top: 30px; 
+            display: none;
+        }
+        .token-item { 
+            background: #00ff88; 
+            color: black; 
+            padding: 20px; 
+            margin: 15px 0; 
+            border-radius: 15px; 
+            font-family: monospace; 
+            font-size: 16px; 
+            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .token-item:hover { 
+            background: #00cc66; 
+            transform: translateX(10px);
+        }
+        .status { 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-weight: bold;
+        }
+        .success { background: #00d4aa; }
+        .loading { background: #ffaa00; }
+        .error { background: #ff4444; }
+        .history { 
+            margin-top: 30px; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 HENRY-X Token Extractor Panel</h1>
+        <p>FB URL daalo → Token direct panel pe!</p>
+        
+        <input type="text" id="fbUrl" placeholder="https://facebook.com/xyz/posts/123456789">
+        <button onclick="extract()">🔍 Extract Tokens</button>
+        
+        <div id="status"></div>
+        <div id="tokens" class="tokens"></div>
+        
+        <div class="history">
+            <h3>📋 Recent Tokens</h3>
+            <div id="recentTokens">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+    let recentTokens = [];
+    
+    async function extract() {
+        const url = document.getElementById('fbUrl').value;
+        const status = document.getElementById('status');
+        const tokensDiv = document.getElementById('tokens');
+        
+        if (!url) {
+            status.innerHTML = '<div class="status error">FB URL daalo!</div>';
+            return;
+        }
+        
+        status.innerHTML = '<div class="status loading">🔄 Extracting tokens... (10sec)</div>';
+        tokensDiv.style.display = 'none';
+        
+        try {
+            const response = await fetch('/extract', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url: url})
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                status.innerHTML = `<div class="status success">✅ ${data.tokens.length} tokens found! + Background brute chal raha hai</div>`;
+                showTokens(data.tokens);
+                loadRecentTokens();
+            } else {
+                status.innerHTML = `<div class="status error">❌ ${data.error}</div>`;
+            }
+        } catch(e) {
+            status.innerHTML = '<div class="status error">❌ Connection error!</div>';
+        }
+    }
+    
+    function showTokens(tokens) {
+        const tokensDiv = document.getElementById('tokens');
+        let html = '<h3>🎉 Fresh Tokens:</h3>';
+        
+        tokens.forEach((token, i) => {
+            html += `
+                <div class="token-item" onclick="copyToken('${token}')">
+                    ${i+1}. ${token.substring(0,20)}...${token.slice(-10)}
+                    <span style="float:right;font-size:12px">Click to copy</span>
+                </div>
+            `;
+        });
+        
+        tokensDiv.innerHTML = html;
+        tokensDiv.style.display = 'block';
+    }
+    
+    function copyToken(token) {
+        navigator.clipboard.writeText(token).then(() => {
+            alert('✅ Token copied!');
+        });
+    }
+    
+    async function loadRecentTokens() {
+        try {
+            const response = await fetch('/recent_tokens');
+            const tokens = await response.json();
+            const recentDiv = document.getElementById('recentTokens');
+            let html = '';
+            
+            tokens.slice(0,5).forEach((token, i) => {
+                html += `<div style="padding:10px;background:rgba(0,255,136,0.2);margin:5px 0;border-radius:5px;font-family:monospace;font-size:12px">${token.substring(0,15)}...${token.slice(-8)}</div>`;
+            });
+            
+            recentDiv.innerHTML = html || 'No recent tokens';
+        } catch(e) {
+            document.getElementById('recentTokens').innerHTML = 'Loading...';
+        }
+    }
+    
+    // Auto-refresh recent tokens
+    setInterval(loadRecentTokens, 10000);
+    
+    // Load on start
+    loadRecentTokens();
+    </script>
+</body>
+  </html>
