@@ -1,98 +1,105 @@
 #!/usr/bin/env python3
-# HENRY PYTHON COMMAND MODE v6.0 | ONE SHOT TOKEN EXTRACTOR
-# 🔥 EK BAR RUN - EMAIL/PASS DALO - TOKEN READY 🔥
+# HENRY MOBILE-ONLY TOKEN EXTRACTOR v8.0
+# 🔥 MOBILE ME KOI F12 NAHI - KIWI BROWSER TRICK 🔥
 
 import requests
 import re
-import sys
-from urllib.parse import quote
+import webbrowser
+import time
+import subprocess
 
-print("🔥 HENRY PYTHON TOKEN KILLER v6.0 🔥")
-print("=" * 50)
+print("🔥 HENRY MOBILE v8.0 | NO PC | KIWI BROWSER 🔥")
+print("Mobile me F12 nahi? No problem!")
 
-# MOBILE AGENT - FB APP EXACT
+print("""
+📱 MOBILE TRICK (30 sec):
+
+1. Play Store → "Kiwi Browser" install karo
+2. Kiwi me jao: messenger.com
+3. 2 messages bhejo dost ko
+4. Menu (3 dots) → More Tools → Developer Tools
+5. Console tab → Copy ye command:
+
+document.cookie
+
+6. Yaha paste karo!
+""")
+
+cookies = input("\n📋 Kiwi Browser cookies paste karo: ")
+
+if not cookies:
+    print("❌ Empty cookies!")
+    exit()
+
+print("\n🔍 MOBILE SCAN START...")
+
+# Mobile Kiwi headers
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/490.0.0.52.117]',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Origin': 'https://m.facebook.com',
-    'Referer': 'https://m.facebook.com/'
-}
-
-print("📧 Email/Phone dalo:")
-email = input("> ").strip()
-print("🔑 Password dalo:")
-password = input("> ").strip()
-
-print("\n🚀 LOGIN START...")
-
-# STEP 1: MOBILE LOGIN
-login_data = {
-    'email': email,
-    'pass': password,
-    'login': 'Log In'
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36',
+    'Accept': 'application/json, text/plain, */*',
+    'Origin': 'https://www.messenger.com',
+    'Referer': 'https://www.messenger.com/'
 }
 
 session = requests.Session()
-login_resp = session.post(
-    'https://m.facebook.com/login.php',
-    data=login_data,
-    headers=headers,
-    allow_redirects=True,
-    timeout=15
-)
+session.headers.update(headers)
 
-print("✅ LOGIN DONE")
+# Parse mobile cookies
+cookie_dict = {}
+for cookie in cookies.split(';'):
+    if '=' in cookie:
+        k, v = cookie.strip().split('=', 1)
+        cookie_dict[k] = v
+session.cookies.update(cookie_dict)
 
-# STEP 2: MESSENGER OPEN
-print("💬 Messenger scan...")
+print("📡 Scanning Messenger endpoints...")
 
-messenger_resp = session.get(
-    'https://www.messenger.com/t/me',
-    headers=headers,
-    timeout=10
-)
+# Mobile safe endpoints
+endpoints = [
+    'https://www.messenger.com/t/100000000000000',
+    'https://www.facebook.com/messages',
+    'https://graph.facebook.com/me?fields=id,name'
+]
 
-graphql_resp = session.get(
-    'https://www.facebook.com/api/graphqlquery/MobileMessageThreadWebGraphQL.1576597622539109/',
-    headers=headers,
-    timeout=10
-)
+all_data = cookies
+for url in endpoints:
+    try:
+        resp = session.get(url, timeout=7)
+        all_data += resp.text
+        print("✓", end=' ')
+        time.sleep(0.8)
+    except:
+        pass
 
-# ALL CONTENT COMBINE
-all_content = login_resp.text + messenger_resp.text + str(session.cookies)
-
-# EAAD6V7 EXTRACT
-token_pattern = r'EAAD[A-Za-z0-9_-]{247,260}'
-tokens = re.findall(token_pattern, all_content)
+# Mobile token patterns
+tokens = re.findall(r'EAAD[A-Za-z0-9_-]{247,260}', all_data)
 
 if tokens:
-    best_token = tokens[0]
-    print("\n🎉 EAAD6V7 TOKEN PA GAYA! 🎉")
-    print("=" * 50)
-    print(f"TOKEN: {best_token}")
-    print("=" * 50)
+    print("\n\n🎉 MOBILE TOKEN PA GAYA! 🎉")
+    token = tokens[0]
+    print(f"🔑 {token}")
     
-    # SAVE
-    with open('HENRY_EAAD6V7.txt', 'w') as f:
-        f.write(best_token)
-    print("✅ SAVED: HENRY_EAAD6V7.txt")
+    # Save
+    with open('HENRY_MOBILE_TOKEN.txt', 'w') as f:
+        f.write(token)
+    print("💾 HENRY_MOBILE_TOKEN.txt")
     
-    # QUICK TEST
-    print("🔬 Testing token...")
-    test_resp = requests.get(
-        f'https://graph.facebook.com/me?access_token={best_token}',
-        timeout=10
-    )
-    if 'id' in test_resp.text:
-        print("✅ TOKEN 100% WORKING!")
-    else:
-        print("⚠️ Token weak hai - blaster me chalega")
-        
+    # Test
+    test = requests.get(f"https://graph.facebook.com/me?access_token={token}", timeout=5)
+    print("✅ WORKING!" if '"id"' in test.text else "⚠️ Blaster try kar")
+    
 else:
-    print("\n❌ TOKEN NHI MILA")
-    print("💡 Messenger me 2 msg bhejo pehle phir try karo")
+    print("\n❌ No token")
+    print("""
+🔧 MOBILE FIX:
 
-print("\n🎮 READY FOR BLASTING!")
-print("python henry_blaster.py")
+Kiwi Browser → messenger.com
+1. 2 reply bhejo
+2. 3 dots → Developer Tools → Console
+3. Ye type karo:
+   document.cookie
+4. Copy full output yaha paste!
+
+Ya fir Termux me ye:
+am start -a android.intent.action.VIEW -d "https://www.messenger.com"
+""")
